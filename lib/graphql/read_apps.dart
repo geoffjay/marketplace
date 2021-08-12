@@ -1,10 +1,9 @@
-import 'dart:io' show stdout, stderr, exit;
-
 import 'package:graphql/client.dart';
 
+import '../app.dart';
 import 'client.dart';
 
-void readRepositories() async {
+Future<Iterable<AppModel>> readApps() async {
   final GraphQLClient _client = getGraphQLClient();
 
   const int maxAppCount = 50;
@@ -21,6 +20,8 @@ void readRepositories() async {
               id
               name
               description
+              created_at
+              updated_at
             }
           }
         }
@@ -34,16 +35,11 @@ void readRepositories() async {
   final QueryResult result = await _client.query(options);
 
   if (result.hasException) {
-    stderr.writeln(result.exception.toString());
-    exit(2);
+    throw (result.exception.toString());
   }
 
-  final List<dynamic> apps =
-  result.data!['apps_aggregate']['nodes'] as List<dynamic>;
+  final List<dynamic> nodes =
+      result.data!['apps_aggregate']['nodes'] as List<dynamic>;
 
-  apps.forEach(
-    (dynamic f) => {stdout.writeln('Id: ${f['id']} Name: ${f['name']}')},
-  );
-
-  exit(0);
+  return nodes.map((node) => AppModel.fromJson(node));
 }

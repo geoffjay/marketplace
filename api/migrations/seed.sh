@@ -5,8 +5,8 @@ API="http://localhost:8080/v1/graphql"
 __gql() {
   args=('{"query": "' "$1" '"}')
   query=$(printf '%s' "${args[@]}")
-  echo "$query"
-#  curl -s $API -X POST -d "$query" | jq
+  #echo "$query"
+  curl -s $API -X POST -d "$query" | jq
 }
 
 __add_category() {

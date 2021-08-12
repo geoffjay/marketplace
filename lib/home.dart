@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app.dart';
+import 'graphql/read_apps.dart';
 import 'style.dart';
 
 class Home extends StatefulWidget {
@@ -13,32 +14,33 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final _apps = <App>[];
-
   Widget _buildApp(App app) {
     return ListTile(
         title: Text(
-          app.title,
-          style: Style.LargeFont,
-        )
-    );
+      app.title,
+      style: Style.LargeFont,
+    ));
   }
 
   Widget _buildApps() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemBuilder: (context, i) {
-        if (i.isOdd) {
-          return const Divider();
+    return FutureBuilder(
+      builder: (context, appSnapshot) {
+        if (appSnapshot.connectionState == ConnectionState.none ||
+            appSnapshot.data == null) {
+          return Container();
         }
 
-        final index = i ~/ 2;
-        if (index >= _apps.length) {
-          _apps.addAll([App(title: "foo"), App(title: "bar")]);
-        }
-
-        return _buildApp(_apps[index]);
+        Iterable<AppModel>? data = appSnapshot.data as Iterable<AppModel>;
+        return ListView.separated(
+          itemCount: data.length,
+          itemBuilder: (context, index) {
+            App app = App(title: data.toList()[index].name);
+            return _buildApp(app);
+          },
+          separatorBuilder: (BuildContext context, int index) => const Divider(),
+        );
       },
+      future: readApps(),
     );
   }
 
