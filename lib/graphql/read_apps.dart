@@ -1,7 +1,28 @@
 import 'package:graphql/client.dart';
 
-import '../app.dart';
-import 'client.dart';
+import 'package:marketplace/graphql/client.dart';
+import 'package:marketplace/models/app.dart';
+
+const appFieldsFragment = '''
+  fragment AppFieldsFragment on apps {
+    id
+    name
+    description
+    created_at
+    updated_at
+  }
+''';
+
+const appCategoriesFragment = '''
+  fragment AppCategoriesFragment on apps {
+    app_categories {
+      category {
+        id
+        name
+      }
+    }
+  }
+''';
 
 Future<Iterable<AppModel>> readApps() async {
   final GraphQLClient _client = getGraphQLClient();
@@ -9,24 +30,21 @@ Future<Iterable<AppModel>> readApps() async {
   const int maxAppCount = 50;
 
   final QueryOptions options = QueryOptions(
-    document: gql(
-      r'''
-        query ReadApps($limit: Int!) {
-          apps_aggregate(limit: $limit) {
+    document: gql('''
+        query ReadApps(\$limit: Int!) {
+          apps_aggregate(limit: \$limit) {
             aggregate {
               count
             }
             nodes {
-              id
-              name
-              description
-              created_at
-              updated_at
+              ... AppFieldsFragment
+              ... AppCategoriesFragment
             }
           }
         }
-      ''',
-    ),
+        $appFieldsFragment
+        $appCategoriesFragment
+      '''),
     variables: {
       'limit': maxAppCount,
     },
